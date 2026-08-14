@@ -6,6 +6,7 @@ import {
   Banknote, RefreshCw, Send, Eye, EyeOff, Globe, RotateCcw,
   Scan, Fingerprint, Crosshair, Download,
 } from "lucide-react";
+import { apiAssetUrl, apiFetch } from "./api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -384,7 +385,7 @@ function CameraCapture({ label, value, facingMode, onCapture }: { label: string;
         {cameraOpen ? (
           <><video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" /><button type="button" onClick={e => { e.stopPropagation(); takePhoto(); }} className="absolute bottom-3 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-white border-4 border-black/40 shadow-lg" aria-label="Capture photo" /></>
         ) : value ? (
-          <><img src={value} alt={label} className="absolute inset-0 w-full h-full object-cover" /><div className="absolute inset-x-0 bottom-0 bg-black/70 px-3 py-2 flex items-center justify-center gap-2 text-xs text-emerald-400"><CheckCircle size={14} /> Captured · Tap to retake</div></>
+          <><img src={apiAssetUrl(value)} alt={label} className="absolute inset-0 w-full h-full object-cover" /><div className="absolute inset-x-0 bottom-0 bg-black/70 px-3 py-2 flex items-center justify-center gap-2 text-xs text-emerald-400"><CheckCircle size={14} /> Captured · Tap to retake</div></>
         ) : (
           <>
             <div className="absolute inset-0 flex items-center justify-center">
@@ -477,7 +478,7 @@ function DocScanItem({ title, subtitle, scanned, onScan }: {
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden ${
         scanned ? "bg-emerald-500/15" : "bg-secondary"
       }`}>
-        {scanned ? <img src={scanned} alt={`${title} scan`} className="w-full h-full object-cover" /> : <FileText size={20} className="text-muted-foreground" />}
+        {scanned ? <img src={apiAssetUrl(scanned)} alt={`${title} scan`} className="w-full h-full object-cover" /> : <FileText size={20} className="text-muted-foreground" />}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground">{title}</p>
@@ -544,7 +545,7 @@ function CaseDetailScreen({ c, user, onBack, onSubmitted, onProgress }: { c: Ver
   async function uploadCapturedImage(image: string, label: string) {
     if (!c.applicationId) throw new Error("Application ID is missing.");
     setUploadError("");
-    const response = await fetch(`/api/field/auth/cases/${c.applicationId}/images`, {
+    const response = await apiFetch(`/api/field/auth/cases/${c.applicationId}/images`, {
       method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
       body: JSON.stringify({ image, label }),
     });
@@ -556,7 +557,7 @@ function CaseDetailScreen({ c, user, onBack, onSubmitted, onProgress }: { c: Ver
   async function goToNextStep() {
     if (step === 0 && c.status === "new" && c.applicationId) {
       try {
-        const response = await fetch(`/api/field/auth/cases/${c.applicationId}/start`, { method: "PATCH", credentials: "include" });
+        const response = await apiFetch(`/api/field/auth/cases/${c.applicationId}/start`, { method: "PATCH" });
         const result = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(result.message || "Unable to start verification.");
         c = { ...c, status: "pending" };
@@ -590,7 +591,7 @@ function CaseDetailScreen({ c, user, onBack, onSubmitted, onProgress }: { c: Ver
         position = await getPosition({ enableHighAccuracy: false, timeout: 30000, maximumAge: 0 });
       }
       const current = { latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy, address: "" };
-      const response = await fetch(`/api/field/auth/reverse-geocode?lat=${current.latitude}&lng=${current.longitude}`, { credentials: "include" });
+      const response = await apiFetch(`/api/field/auth/reverse-geocode?lat=${current.latitude}&lng=${current.longitude}`);
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || "Address could not be found.");
       setLocation({ ...current, address: result.data.address, source: "gps" });
@@ -598,7 +599,7 @@ function CaseDetailScreen({ c, user, onBack, onSubmitted, onProgress }: { c: Ver
     } catch (error: any) {
       if (error?.code === 2 || error?.code === 3) {
         try {
-          const fallbackResponse = await fetch('/api/field/auth/network-location', { credentials: 'include' });
+          const fallbackResponse = await apiFetch('/api/field/auth/network-location');
           const fallbackResult = await fallbackResponse.json().catch(() => ({}));
           if (!fallbackResponse.ok) throw new Error(fallbackResult.message || 'Network location unavailable');
           setLocation(fallbackResult.data);
@@ -627,7 +628,7 @@ function CaseDetailScreen({ c, user, onBack, onSubmitted, onProgress }: { c: Ver
     setSubmitting(true);
     setSubmitError("");
     try {
-      const response = await fetch(`/api/field/auth/cases/${c.applicationId}/report`, {
+      const response = await apiFetch(`/api/field/auth/cases/${c.applicationId}/report`, {
         method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ documents: { ...docs, extraDocument, checklist }, photos, location, signature, outcome, remarks: remarks.trim() }),
       });
@@ -1189,13 +1190,13 @@ function ProfileScreen({ user, installPrompt, installPreparing, onInstall, onLog
       );
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
-      const response = await fetch(`/api/field/auth/reverse-geocode?lat=${latitude}&lng=${longitude}`, { credentials: "include" });
+      const response = await apiFetch(`/api/field/auth/reverse-geocode?lat=${latitude}&lng=${longitude}`);
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || "Address unavailable");
       setCurrentLocation({ latitude, longitude, accuracy: position.coords.accuracy, address: result.data.address, source: "GPS" });
     } catch {
       try {
-        const response = await fetch("/api/field/auth/network-location", { credentials: "include" });
+        const response = await apiFetch("/api/field/auth/network-location");
         const result = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(result.message || "Location unavailable");
         setCurrentLocation({ ...result.data, source: "Network (approximate)" });
@@ -1287,7 +1288,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: FieldUser) => void }) {
     if (pin.length < 4) { setError("Please enter your 4-digit PIN."); return; }
     setLoading(true); setError("");
     try {
-      const response = await fetch("/api/field/auth/login", {
+      const response = await apiFetch("/api/field/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -1459,7 +1460,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    fetch("/api/field/auth/me", { credentials: "include" })
+    apiFetch("/api/field/auth/me")
       .then(async response => {
         const result = await response.json().catch(() => ({}));
         if (!response.ok || !result.data) throw new Error("No active session");
@@ -1474,7 +1475,7 @@ export default function App() {
     setCasesLoading(true);
     setCasesError("");
     try {
-      const response = await fetch("/api/field/auth/cases", { credentials: "include" });
+      const response = await apiFetch("/api/field/auth/cases");
       const result = await response.json().catch(() => ({}));
       if (response.status === 401) {
         setUser(null);
@@ -1494,7 +1495,7 @@ export default function App() {
     setHistoryLoading(true);
     setHistoryError("");
     try {
-      const response = await fetch("/api/field/auth/history", { credentials: "include" });
+      const response = await apiFetch("/api/field/auth/history");
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || "Unable to load verification history.");
       setHistory(result.data);
@@ -1515,7 +1516,7 @@ export default function App() {
 
   async function logout() {
     try {
-      await fetch("/api/field/auth/logout", { method: "POST", credentials: "include" });
+      await apiFetch("/api/field/auth/logout", { method: "POST" });
     } finally {
       setUser(null);
       setLoggedIn(false);

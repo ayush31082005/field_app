@@ -22,7 +22,7 @@ const verifyPin = (pin: string, storedHash: string) => {
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
   maxAge: 8 * 60 * 60 * 1000,
 };
 
@@ -86,7 +86,7 @@ export const logout = (_req: Request, res: Response): void => {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
   res.json({ status: 'success', message: 'Logged out successfully' });
 };

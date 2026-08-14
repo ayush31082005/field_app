@@ -23,6 +23,7 @@ const allowedOrigins = new Set([
   'http://localhost:5174',
   'http://localhost:8443',
   'https://field-app-6q75.vercel.app',
+  'https://field-app-eta.vercel.app',
 ]);
 
 app.use(cors({
