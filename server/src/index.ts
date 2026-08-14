@@ -18,8 +18,18 @@ const sharedFieldUploadDirectory = process.env.FIELD_VERIFICATION_UPLOAD_DIR
 app.use('/uploads/field-verification', express.static(sharedFieldUploadDirectory));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:8443',
+  'https://field-app-6q75.vercel.app',
+]);
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:8443'],
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
   credentials: true
 }));
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -243,5 +253,9 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// Vercel invokes the exported Express app as a serverless handler. Locally,
+// nodemon/Node still starts the regular HTTP listener and prepares the schema.
+if (!process.env.VERCEL) startServer();
+
+export default app;
 
