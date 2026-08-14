@@ -1,0 +1,591 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: #f7f7f4;
+  --foreground: #0f1b33;
+  --card: #ffffff;
+  --card-foreground: #0f1b33;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #ef4823;
+  --primary-foreground: #ffffff;
+  --secondary: #f2f4f7;
+  --secondary-foreground: #1f2f49;
+  --muted: #f3f4f6;
+  --muted-foreground: #68758a;
+  --accent: #fff1e7;
+  --accent-foreground: #d83b1d;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e1e5ea;
+  --input: transparent;
+  --input-background: #f7f8fa;
+  --switch-background: #d4d4d4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: rgba(239, 72, 35, 0.30);
+  --chart-1: #ef4823;
+  --chart-2: #ff7a00;
+  --chart-3: #f5be3d;
+  --chart-4: #fdba74;
+  --chart-5: #fef3c7;
+  --radius: 1rem;
+  --sidebar: #0d1930;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ef4823;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a2942;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.10);
+  --sidebar-ring: rgba(239, 72, 35, 0.35);
+}
+
+@layer components {
+  .app-shell {
+    min-height: 100dvh;
+    width: 100%;
+    background: #f3f2ee;
+    overflow-x: hidden;
+  }
+
+  .app-panel {
+    min-height: 100dvh;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+    min-width: 0;
+    max-width: 100vw;
+    background: #f7f7f4;
+    box-shadow: 0 0 0 1px #dfe3e8, 0 24px 70px rgba(15, 27, 51, 0.10);
+  }
+
+  /* The field-verification PWA is a mobile-first application. On larger
+     screens it stays at handset width, while phones use the full viewport. */
+  .mobile-app-panel {
+    flex: 0 1 448px;
+    width: min(100%, 448px);
+    max-width: 448px;
+  }
+
+  .geetpay-topbar {
+    padding-top: max(.625rem, env(safe-area-inset-top));
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .geetpay-topbar > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .geetpay-topbar > div:nth-child(2) {
+    flex: 0 0 auto;
+  }
+
+  .app-panel > .border-t:last-child {
+    padding-bottom: max(.375rem, env(safe-area-inset-bottom));
+  }
+
+  .app-panel img,
+  .app-panel video,
+  .app-panel canvas {
+    max-width: 100%;
+  }
+
+  .app-panel > *,
+  .dashboard-content,
+  .dashboard-content > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .app-panel > .flex-1,
+  .app-panel > .flex-1.overflow-y-auto {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .dashboard-content > div:first-child {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-content > div:first-child > * {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .app-panel .bg-card.border {
+    box-shadow: 0 5px 16px rgba(15, 27, 51, 0.045);
+  }
+
+  .dashboard-hero {
+    background: #ffffff;
+    color: #0f1b33;
+    margin: 1.5rem 1rem 0;
+    border: 1px solid #e5e0d4;
+    border-radius: 1rem;
+    box-shadow: 0 5px 18px rgba(15, 27, 51, .04);
+  }
+
+  .dashboard-hero::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 1.4rem;
+    bottom: 1.4rem;
+    width: .42rem;
+    border-radius: .2rem;
+    background: #ef4823;
+  }
+  .dashboard-hero .text-foreground { color: #0f1b33; }
+  .dashboard-hero .text-muted-foreground { color: #68758a; opacity: 1; }
+  .dashboard-hero > *:not(.absolute) { margin-left: 1rem; }
+
+  .dashboard-content > div:first-child .bg-card {
+    border-top: 3px solid #ef4823;
+  }
+
+  .dashboard-content .bg-foreground {
+    background-color: #ef4823;
+  }
+
+  .app-panel > .bg-card:first-child {
+    background: #0d1930;
+    color: white;
+    border-color: #0d1930;
+  }
+
+  .app-panel > .bg-card:first-child .text-foreground,
+  .app-panel > .bg-card:first-child .text-muted-foreground {
+    color: white;
+  }
+
+  .dashboard-content button,
+  .app-panel button.bg-foreground {
+    background: #ffffff;
+    color: #0f1b33;
+    border-color: #e1e5ea;
+  }
+
+  .dashboard-content button:hover {
+    background: #ef4823;
+    color: white;
+  }
+
+  .app-panel > .border-t:last-child button.bg-secondary {
+    background: #ef4823;
+    color: white;
+    box-shadow: none;
+  }
+
+  .app-panel > .border-t:last-child {
+    background: #0d1930;
+    border-color: #1a2942;
+  }
+
+  .app-panel > .border-t:last-child button:not(.bg-secondary) {
+    color: #aeb8c8;
+  }
+
+  .app-panel > .border-t:last-child button:hover {
+    color: #d93b1b;
+    background: #fff1e7;
+  }
+
+  /* GeetPay finance dashboard theme */
+  .app-panel {
+    color: #0d1930;
+  }
+
+  .app-panel .bg-card {
+    background-color: #ffffff;
+  }
+
+  .app-panel .bg-secondary {
+    background-color: #f4f6f8;
+  }
+
+  .app-panel .text-foreground {
+    color: #0d1930;
+  }
+
+  .app-panel .text-muted-foreground {
+    color: #6b788d;
+  }
+
+  .app-panel .bg-foreground {
+    background-color: #ef4823;
+  }
+
+  .app-panel .bg-foreground.text-background,
+  .app-panel button.bg-foreground {
+    color: #ffffff;
+  }
+
+  .app-panel button.bg-foreground:hover {
+    background-color: #d93b1b;
+  }
+
+  .app-panel input,
+  .app-panel textarea {
+    background-color: #f7f8fa;
+    border-color: #dfe4ea;
+  }
+
+  .app-panel .border-border {
+    border-color: #e1e5ea;
+  }
+
+  .dashboard-content > :nth-child(3) {
+    background: #fff8e8;
+    border-color: #f0d99c;
+  }
+
+  .app-panel > .border-t:last-child button.bg-secondary {
+    background: #ef4823;
+    color: #ffffff;
+  }
+
+  .app-panel > .border-t:last-child button:not(.bg-secondary) {
+    color: #b8c2d1;
+  }
+
+  .app-panel [role="dialog"],
+  .app-panel .bg-popover {
+    background: #ffffff;
+    color: #0d1930;
+  }
+
+  .app-panel > .bg-card:first-child {
+    background: #0d1930;
+    border-color: #0d1930;
+  }
+
+  .app-panel > .geetpay-topbar:first-child {
+    background: #ffffff;
+    border-color: #e2e8f0;
+  }
+
+  .app-panel > .geetpay-topbar:first-child .text-foreground,
+  .app-panel > .geetpay-topbar:first-child .text-muted-foreground {
+    color: #334155;
+  }
+
+  .app-panel > .bg-card:first-child .text-foreground,
+  .app-panel > .bg-card:first-child .text-muted-foreground {
+    color: #ffffff;
+  }
+
+  .app-panel > .geetpay-topbar:first-child,
+  .app-panel > .geetpay-topbar:first-child:hover {
+    background: #ffffff;
+    border-color: #e2e8f0;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      padding: 1.5rem;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .dashboard-content > * {
+      width: 100%;
+    }
+
+    .dashboard-hero {
+      width: calc(100% - 2rem);
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .mobile-app-panel {
+      flex-basis: 100%;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .app-panel {
+      box-shadow: none;
+    }
+
+    .dashboard-hero {
+      margin: .75rem .75rem 0;
+      padding: 1.1rem 1rem 1.1rem 1.25rem;
+    }
+
+    .dashboard-hero::before {
+      left: .75rem;
+      top: 1rem;
+      bottom: 1rem;
+      width: .3rem;
+    }
+
+    .dashboard-content {
+      padding: .75rem;
+      padding-bottom: 1.25rem;
+    }
+
+    .dashboard-content > div:first-child {
+      gap: .45rem;
+    }
+
+    .dashboard-content > div:first-child .bg-card {
+      padding: .7rem .3rem;
+      border-radius: .8rem;
+    }
+
+    .dashboard-content > div:first-child .text-muted-foreground {
+      font-size: .48rem;
+      letter-spacing: .08em;
+    }
+
+    .dashboard-content > :nth-child(2) .flex {
+      min-width: 0;
+    }
+
+    .dashboard-content > :nth-child(2) p {
+      min-width: 0;
+    }
+
+    .geetpay-topbar img {
+      width: 118px;
+    }
+
+    .profile-content {
+      padding-left: .75rem;
+      padding-right: .75rem;
+    }
+
+    .profile-settings button {
+      padding-left: .875rem;
+      padding-right: .75rem;
+    }
+
+    .profile-screen button,
+    .profile-screen p,
+    .profile-screen span,
+    .profile-screen div {
+      max-width: 100%;
+    }
+
+    .app-panel > .border-t:last-child {
+      position: relative;
+      z-index: 30;
+    }
+
+    .app-panel > .border-t:last-child > button {
+      min-width: 0;
+      padding-left: .25rem;
+      padding-right: .25rem;
+      overflow: hidden;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .dashboard-hero h2 {
+      font-size: 1.15rem;
+    }
+
+    .geetpay-topbar {
+      padding-left: .75rem;
+      padding-right: .75rem;
+    }
+
+    .geetpay-topbar img {
+      width: 104px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .app-panel:not(.mobile-app-panel) {
+      max-width: 1180px;
+    }
+
+    .dashboard-hero { margin-left: auto; margin-right: auto; }
+  }
+}
+
+html {
+  min-width: 320px;
+  width: 100%;
+  max-width: 100%;
+  background: #f3f2ee;
+  overscroll-behavior: none;
+  overflow-x: hidden;
+}
+
+body,
+#root {
+  min-width: 320px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  touch-action: manipulation;
+}
+
+.dark {
+  --background: #070707;
+  --foreground: #f0f0f0;
+  --card: #111111;
+  --card-foreground: #f0f0f0;
+  --popover: #111111;
+  --popover-foreground: #f0f0f0;
+  --primary: #f0f0f0;
+  --primary-foreground: #070707;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #d0d0d0;
+  --muted: #1a1a1a;
+  --muted-foreground: #6a6a6a;
+  --accent: #222222;
+  --accent-foreground: #f0f0f0;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.09);
+  --input: transparent;
+  --ring: rgba(255, 255, 255, 0.25);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #f0f0f0;
+  --chart-2: #a0a0a0;
+  --chart-3: #606060;
+  --chart-4: #303030;
+  --chart-5: #181818;
+  --sidebar: #0f0f0f;
+  --sidebar-foreground: #f0f0f0;
+  --sidebar-primary: #f0f0f0;
+  --sidebar-primary-foreground: #070707;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #d0d0d0;
+  --sidebar-border: rgba(255, 255, 255, 0.09);
+  --sidebar-ring: rgba(255, 255, 255, 0.25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}

@@ -1,0 +1,25 @@
+# Dependencies and generated builds
+**/node_modules/
+**/dist/
+
+# Environment files and credentials
+**/.env
+**/.env.*
+!**/.env.example
+
+# Runtime logs
+*.log
+server/logs.txt
+
+# User-generated field verification evidence (contains private KYC data)
+server/uploads/**
+!server/uploads/.gitkeep
+!server/uploads/field-verification/
+server/uploads/field-verification/**
+!server/uploads/field-verification/.gitkeep
+
+# Local archives and editor/system files
+*.zip
+.DS_Store
+Thumbs.db
+.vscode/
