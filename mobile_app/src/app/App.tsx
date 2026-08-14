@@ -971,7 +971,7 @@ function DashboardScreen({ cases, user, onSelectCase }: { cases: VerificationCas
 
       <div className="dashboard-content px-4 pt-4 pb-6 space-y-5 md:space-y-0">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="dashboard-stats grid grid-cols-3 gap-2">
           {[
             { n: cases.length, label: "Assigned" },
             { n: done.length, label: "Completed" },
