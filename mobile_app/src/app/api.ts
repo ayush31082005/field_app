@@ -1,6 +1,6 @@
 export const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL
-  || (import.meta.env.DEV ? '' : 'https://field-app-server.vercel.app')
+  || 'https://field-app-server.vercel.app'
 ).replace(/\/$/, '');
 
 const withBaseUrl = (path: string) => {
@@ -18,4 +18,3 @@ export const apiFetch = (path: string, options: RequestInit = {}) =>
 /** Converts a backend upload path into a browser-loadable absolute URL. */
 export const apiAssetUrl = (path: string | null | undefined) =>
   path ? withBaseUrl(path) : '';
-
