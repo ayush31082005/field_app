@@ -1,14 +1,8 @@
 import { Request, Response } from 'express';
-import { assertFieldCaseOwnership, claimFieldCase, findAssignedFieldCases, findExistingFieldReport, findFieldHistory } from '../../models/fieldModels/casesModel';
-import { saveFieldReport } from '../../models/fieldModels/casesModel';
+import { assertFieldCaseOwnership, claimFieldCase, deleteFieldImageUpload, findAssignedFieldCases, findExistingFieldReport, findFieldHistory, findFieldImageUpload, saveFieldImageUpload, saveFieldReport } from '../../models/fieldModels/casesModel';
 import axios from 'axios';
-import crypto from 'crypto';
-import fs from 'fs/promises';
-import path from 'path';
 
-const FIELD_UPLOAD_DIRECTORY = path.resolve(__dirname, '../../../uploads/field-verification');
-
-const saveDataImage = async (dataUrl: string, applicationId: number, label: string) => {
+const saveDataImage = async (dataUrl: string, applicationId: number, fieldUserId: number, label: string) => {
   const match = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
   if (!match) {
     const error: any = new Error(`Invalid ${label} image`);
@@ -22,14 +16,14 @@ const saveDataImage = async (dataUrl: string, applicationId: number, label: stri
     throw error;
   }
   const extension = match[1] === 'jpg' ? 'jpeg' : match[1];
-  const fileName = `application_${applicationId}_${label}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.${extension}`;
-  await fs.mkdir(FIELD_UPLOAD_DIRECTORY, { recursive: true });
-  await fs.writeFile(path.join(FIELD_UPLOAD_DIRECTORY, fileName), buffer);
-  return { filePath: path.join(FIELD_UPLOAD_DIRECTORY, fileName), publicPath: `/uploads/field-verification/${fileName}` };
+  return saveFieldImageUpload(applicationId, fieldUserId, label, `image/${extension}`, buffer);
 };
 
 const isStoredImagePath = (value: unknown) =>
-  typeof value === 'string' && /^\/uploads\/field-verification\/application_\d+_[a-z_]+_\d+_[a-f0-9]+\.(jpeg|png|webp)$/.test(value);
+  typeof value === 'string' && (
+    /^\/api\/field\/auth\/images\/[0-9a-f-]{36}$/.test(value)
+    || /^\/uploads\/field-verification\/application_\d+_[a-z_]+_\d+_[a-f0-9]+\.(jpeg|png|webp)$/.test(value)
+  );
 
 export const uploadFieldImage = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -41,11 +35,32 @@ export const uploadFieldImage = async (req: Request, res: Response): Promise<voi
       return;
     }
     await assertFieldCaseOwnership(applicationId, (req as any).fieldUser.id);
-    const saved = await saveDataImage(String(req.body.image || ''), applicationId, label);
+    const saved = await saveDataImage(String(req.body.image || ''), applicationId, (req as any).fieldUser.id, label);
     res.status(201).json({ status: 'success', data: { path: saved.publicPath } });
   } catch (error: any) {
     console.error('Field image upload error:', error);
     res.status(error?.statusCode || 500).json({ status: 'error', message: error?.message || 'Unable to upload image' });
+  }
+};
+
+export const getFieldImage = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const imageId = String(req.params.imageId || '').toLowerCase();
+    if (!/^[0-9a-f-]{36}$/.test(imageId)) {
+      res.status(400).json({ status: 'error', message: 'Invalid image ID' });
+      return;
+    }
+    const image = await findFieldImageUpload(imageId, (req as any).fieldUser.id);
+    if (!image) {
+      res.status(404).json({ status: 'error', message: 'Image not found' });
+      return;
+    }
+    res.setHeader('Content-Type', image.mime_type);
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.send(image.image_data);
+  } catch (error) {
+    console.error('Field image read error:', error);
+    res.status(500).json({ status: 'error', message: 'Unable to load image' });
   }
 };
 
@@ -125,7 +140,7 @@ export const getNetworkLocation = async (_req: Request, res: Response): Promise<
 };
 
 export const submitReport = async (req: Request, res: Response): Promise<void> => {
-  const createdFiles: string[] = [];
+  const createdUploadIds: string[] = [];
   try {
     const applicationId = Number(req.params.applicationId);
     const { documents, photos, location, signature, outcome, remarks } = req.body;
@@ -149,8 +164,8 @@ export const submitReport = async (req: Request, res: Response): Promise<void> =
     const reportId = `RPT-${applicationId}-${Date.now().toString(36).toUpperCase()}`;
     const saveImage = async (dataUrl: string, label: string) => {
       if (isStoredImagePath(dataUrl)) return dataUrl;
-      const saved = await saveDataImage(dataUrl, applicationId, label);
-      createdFiles.push(saved.filePath);
+      const saved = await saveDataImage(dataUrl, applicationId, (req as any).fieldUser.id, label);
+      createdUploadIds.push(saved.id);
       return saved.publicPath;
     };
     const storedDocuments = {
@@ -169,7 +184,7 @@ export const submitReport = async (req: Request, res: Response): Promise<void> =
     });
     res.status(201).json({ status: 'success', message: 'Field verification report submitted', data: { reportId, photos: storedPhotos } });
   } catch (error: any) {
-    await Promise.all(createdFiles.map(file => fs.unlink(file).catch(() => undefined)));
+    await Promise.all(createdUploadIds.map(id => deleteFieldImageUpload(id, (req as any).fieldUser.id).catch(() => undefined)));
     console.error('Submit field report error:', error);
     res.status(error?.statusCode || 500).json({ status: 'error', message: error?.message || 'Unable to submit field verification report' });
   }

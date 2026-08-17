@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { login, logout, me, register } from '../../controllers/fieldController/authController';
 import { requireFieldAuth } from '../../middleware/fieldAuthMiddleware';
-import { getCases, getHistory, getNetworkLocation, reverseGeocode, startCase, submitReport, uploadFieldImage } from '../../controllers/fieldController/casesController';
+import { getCases, getFieldImage, getHistory, getNetworkLocation, reverseGeocode, startCase, submitReport, uploadFieldImage } from '../../controllers/fieldController/casesController';
 
 const router = Router();
 
@@ -15,6 +15,7 @@ router.get('/reverse-geocode', requireFieldAuth, reverseGeocode);
 router.get('/network-location', requireFieldAuth, getNetworkLocation);
 router.post('/cases/:applicationId/report', requireFieldAuth, submitReport);
 router.post('/cases/:applicationId/images', requireFieldAuth, uploadFieldImage);
+router.get('/images/:imageId', requireFieldAuth, getFieldImage);
 router.patch('/cases/:applicationId/start', requireFieldAuth, startCase);
 router.get('/history', requireFieldAuth, getHistory);
 

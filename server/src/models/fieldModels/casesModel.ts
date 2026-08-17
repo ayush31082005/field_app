@@ -1,4 +1,5 @@
 import pool, { queryWithRetry } from '../../config/db';
+import crypto from 'crypto';
 
 const normalizeLoanType = (purpose: unknown): 'home' | 'personal' | 'gold' | 'business' | 'education' => {
   const value = String(purpose || '').toLowerCase();
@@ -29,6 +30,66 @@ const formatExperience = (value: unknown): string => {
   const experience = String(value ?? '').trim();
   if (!experience) return 'N/A';
   return /\b(year|years|yr|yrs)\b/i.test(experience) ? experience : `${experience} years`;
+};
+
+let uploadTableReady: Promise<unknown> | null = null;
+
+const ensureFieldUploadTable = () => {
+  if (!uploadTableReady) {
+    uploadTableReady = pool.query(`
+      CREATE TABLE IF NOT EXISTS field_verification_uploads (
+        id CHAR(36) PRIMARY KEY,
+        application_id INT NOT NULL,
+        field_user_id INT NOT NULL,
+        label VARCHAR(50) NOT NULL,
+        mime_type VARCHAR(30) NOT NULL,
+        image_data LONGBLOB NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_field_upload_application (application_id),
+        INDEX idx_field_upload_user (field_user_id)
+      )
+    `).catch(error => {
+      uploadTableReady = null;
+      throw error;
+    });
+  }
+  return uploadTableReady;
+};
+
+export const saveFieldImageUpload = async (
+  applicationId: number,
+  fieldUserId: number,
+  label: string,
+  mimeType: string,
+  imageData: Buffer,
+) => {
+  await ensureFieldUploadTable();
+  const id = crypto.randomUUID();
+  await pool.query(`
+    INSERT INTO field_verification_uploads
+      (id, application_id, field_user_id, label, mime_type, image_data)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `, [id, applicationId, fieldUserId, label, mimeType, imageData]);
+  return { id, publicPath: `/api/field/auth/images/${id}` };
+};
+
+export const findFieldImageUpload = async (id: string, fieldUserId: number) => {
+  await ensureFieldUploadTable();
+  const [rows]: any = await pool.query(`
+    SELECT mime_type, image_data
+    FROM field_verification_uploads
+    WHERE id = ? AND field_user_id = ?
+    LIMIT 1
+  `, [id, fieldUserId]);
+  return rows[0] || null;
+};
+
+export const deleteFieldImageUpload = async (id: string, fieldUserId: number) => {
+  await ensureFieldUploadTable();
+  await pool.query(
+    'DELETE FROM field_verification_uploads WHERE id = ? AND field_user_id = ?',
+    [id, fieldUserId],
+  );
 };
 
 export const claimFieldCase = async (applicationId: number, fieldUserId: number) => {
