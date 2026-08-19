@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
+import { uploadToCloudinary } from '../config/cloudinary';
 
 async function getInternalUserId(rawUserId: string | string[]): Promise<number | null> {
   const normalizedUserId = Array.isArray(rawUserId) ? rawUserId[0] : rawUserId;
@@ -369,28 +370,21 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Decode base64
-    const base64Data = imageBase64.replace(/^data:.*?;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
+    const cleanFileName = String(fileName || docType || 'document').replace(/[^a-zA-Z0-9]/g, '_');
+    const result = await uploadToCloudinary(imageBase64, {
+      folder: 'customer_docs',
+      publicId: `doc_${userId}_${Date.now()}_${cleanFileName}`,
+      resourceType: 'auto'
+    });
 
-    // Create directory if not exists
-    const uploadsDir = path.join(__dirname, '../../uploads/customer_docs');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    const savedFileName = `doc_${userId}_${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const filePath = path.join(uploadsDir, savedFileName);
-    fs.writeFileSync(filePath, buffer);
-
-    const relativePath = `uploads/customer_docs/${savedFileName}`;
+    const docUrl = result.secure_url;
 
     // Update missing docs table for the specific doc
     await pool.query(`
       UPDATE telecaller_missing_docs 
       SET status = 'UPLOADED', customer_update = ? 
       WHERE user_id = ? AND name = ? AND status = 'PENDING'
-    `, [`Uploaded: /${relativePath}`, userId, docType]);
+    `, [`Uploaded: ${docUrl}`, userId, docType]);
 
     // Check if all requested docs for this link are now uploaded
     const [linkRows]: any = await pool.query(`SELECT doc_types FROM telecaller_share_links WHERE id = ?`, [linkId]);
@@ -412,7 +406,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
     }
 
     await logAction(userId, req, 'DOCUMENT UPLOADED', `Type: ${docType}`);
-    res.json({ status: 'success', message: 'Document uploaded successfully', path: `/${relativePath}` });
+    res.json({ status: 'success', message: 'Document uploaded successfully', path: docUrl });
   } catch (error: any) {
     console.error('Error uploading document:', error);
     res.status(500).json({ status: 'error', message: 'Internal server error', error: error?.message });

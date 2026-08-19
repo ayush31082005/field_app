@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { uploadToCloudinary } from '../../config/cloudinary';
 import { findFcuUserByEmail } from '../../models/fcuModels/authModel';
 import { createDocumentRequestRecord, findDocumentRequestByApplication, findDocumentRequestByToken, saveRequestedDocumentUpload } from '../../models/fcuModels/documentRequestModel';
 
@@ -72,13 +73,16 @@ export const uploadCustomerDocument = async (req: Request, res: Response): Promi
     if (!request || request.status === 'CLOSED' || new Date(request.expires_at).getTime() < Date.now()) {
       res.status(410).json({ status: 'error', message: 'Document request is invalid or expired' }); return;
     }
-    const uploadsDir = path.join(__dirname, '../../../uploads/fcu_customer_docs');
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    const savedName = `${token.slice(0, 10)}_${documentId}_${Date.now()}_${originalName}`;
-    fs.writeFileSync(path.join(uploadsDir, savedName), buffer);
-    const relativePath = `uploads/fcu_customer_docs/${savedName}`;
-    const saved = await saveRequestedDocumentUpload(token, documentId, originalName, relativePath);
-    if (!saved) { fs.unlinkSync(path.join(uploadsDir, savedName)); res.status(404).json({ status: 'error', message: 'Requested document not found' }); return; }
+
+    const result = await uploadToCloudinary(imageBase64, {
+      folder: 'fcu_customer_docs',
+      publicId: `${token.slice(0, 10)}_${documentId}_${Date.now()}`,
+      resourceType: 'auto'
+    });
+
+    const docUrl = result.secure_url;
+    const saved = await saveRequestedDocumentUpload(token, documentId, originalName, docUrl);
+    if (!saved) { res.status(404).json({ status: 'error', message: 'Requested document not found' }); return; }
     res.json({ status: 'success', message: 'Document uploaded successfully', data: normalize(await findDocumentRequestByToken(token)) });
   } catch (error) {
     console.error('FCU customer upload error:', error);

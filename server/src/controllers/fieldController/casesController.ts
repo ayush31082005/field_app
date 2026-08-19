@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { assertFieldCaseOwnership, claimFieldCase, deleteFieldImageUpload, findAssignedFieldCases, findExistingFieldReport, findFieldHistory, findFieldImageUpload, saveFieldImageUpload, saveFieldReport } from '../../models/fieldModels/casesModel';
+import { uploadToCloudinary } from '../../config/cloudinary';
 import axios from 'axios';
 
 const saveDataImage = async (dataUrl: string, applicationId: number, fieldUserId: number, label: string) => {
@@ -15,13 +16,17 @@ const saveDataImage = async (dataUrl: string, applicationId: number, fieldUserId
     error.statusCode = 400;
     throw error;
   }
-  const extension = match[1] === 'jpg' ? 'jpeg' : match[1];
-  return saveFieldImageUpload(applicationId, fieldUserId, label, `image/${extension}`, buffer);
+  const result = await uploadToCloudinary(dataUrl, {
+    folder: 'field_verification',
+    publicId: `field_${applicationId}_${label}_${Date.now()}`
+  });
+  return { id: result.public_id, publicPath: result.secure_url };
 };
 
 const isStoredImagePath = (value: unknown) =>
   typeof value === 'string' && (
-    /^\/api\/field\/auth\/images\/[0-9a-f-]{36}$/.test(value)
+    /^https?:\/\//i.test(value)
+    || /^\/api\/field\/auth\/images\/[0-9a-f-]{36}$/.test(value)
     || /^\/uploads\/field-verification\/application_\d+_[a-z_]+_\d+_[a-f0-9]+\.(jpeg|png|webp)$/.test(value)
   );
 
